@@ -1,8 +1,8 @@
-# Self-Supervised Fault Detection in Seismic Data Using a True 3D Global Attention Convolutional Network
+# Fault Detection in Seismic Data Using a True 3D Global Attention Convolutional Network
 
 
 
-Official implementation of **"Self-Supervised Fault Detection in Seismic Data Using a True 3D Global Attention Convolutional Network with Denoising Pretext Training"** by Matin Mahzad and Majid Bagheri.
+Official implementation of **"Fault Detection in Seismic Data Using a True 3D Global Attention Convolutional Network with Self-Supervised Denoising Pretext Training"** by Matin Mahzad and Majid Bagheri.
 
 ## 🔬 Overview
 
