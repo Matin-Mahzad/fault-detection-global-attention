@@ -1,6 +1,6 @@
 """
-Self-Supervised Fault Detection in Seismic Data Using a True 3D Global
-Attention Convolutional Network with Denoising Pretext Training
+Fault Detection in Seismic Data Using a True 3D Global
+Attention Convolutional Network with Self-Supervised Denoising Pretext Training
 
 Copyright (c) 2025 Matin Mahzad
 
