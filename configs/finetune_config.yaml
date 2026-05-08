@@ -1,0 +1,69 @@
+# Fine-tuning configuration for discriminative transfer learning
+# Fault Detection in Seismic Data Using a True 3D Global Attention
+# Convolutional Network with Denoising Pretext Training
+
+model:
+  in_channels: 1
+  out_channels: 1
+  base_channels: 16
+  attention_heads: 8
+
+data:
+  cube_size: 64
+  overlap: 32          # stride = cube_size - overlap = 32 voxels per axis
+  normalize: true
+
+training:
+  epochs: 100
+  batch_size: 2        # per GPU; effective batch = 2 x 4 steps accumulation x 4 GPUs = 16
+  gradient_accumulation_steps: 4
+  effective_batch_size: 16
+  weight_decay: 1.0e-4
+  grad_clip_norm: 1.0
+  early_stopping_patience: 20
+  mixed_precision: true     # AMP with FP16 forward, FP32 loss/optimizer
+  gradient_checkpointing: true
+
+optimizer:
+  type: AdamW
+  beta1: 0.9
+  beta2: 0.999
+
+llrd:                  # Layer-wise Learning Rate Decay
+  base_lr: 5.0e-4      # applied to top (output) layer group
+  decay_factor: 0.95   # lr_l = base_lr * decay_factor^l
+  # Resulting LRs by group:
+  # Group 0 (output):          5.00e-4
+  # Group 1 (decoder):         4.75e-4
+  # Group 2 (decoder):         4.51e-4
+  # Group 3 (bottleneck):      4.29e-4
+  # Group 4 (encoder top):     4.07e-4
+  # Group 5 (encoder bottom):  3.87e-4
+
+scheduler:             # Slanted Triangular LR
+  type: SlantedTriangularLR
+  cut_frac: 0.1        # 10% warm-up = 110 steps (100 epochs x 11 batches)
+  ratio: 32            # peak-to-min LR ratio; decays to base_lr/32 by end
+
+unfreezing:            # Gradual Unfreezing schedule (epochs)
+  schedule: [0, 10, 20, 30]
+  # Epoch  0: output + decoder blocks unfrozen
+  # Epoch 10: bottleneck unfrozen
+  # Epoch 20: encoder top blocks unfrozen
+  # Epoch 30: encoder bottom (deepest) blocks unfrozen
+
+loss:
+  type: UnifiedFocalLoss
+  lambda_param: 0.5    # balance between FocalTversky and Focal
+  tversky_alpha: 0.3   # FP penalty (lower = fewer false positive penalties)
+  tversky_beta: 0.7    # FN penalty (higher = recall-biased)
+  tversky_gamma: 1.33  # focal modulation for hard examples
+  focal_alpha: 0.25    # foreground class weight
+  focal_gamma: 2.0     # focusing parameter
+  smooth: 1.0          # Tversky smoothing constant
+
+hardware:
+  gpus: 4
+  gpu_model: RTX 4090
+  vram_per_gpu_training: 19.3   # GB
+  vram_per_gpu_inference: 7.8   # GB
